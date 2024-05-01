@@ -703,13 +703,14 @@ impl Tab {
             include_user_agent_shadow_dom: None,
         })
         .and_then(|o| {
-            Ok(self
-                .call_method(DOM::GetSearchResults {
-                    search_id: o.search_id,
-                    from_index: 0,
-                    to_index: o.result_count,
-                })?
-                .node_ids[0])
+            match self.call_method(DOM::GetSearchResults {
+                search_id: o.search_id,
+                from_index: 0,
+                to_index: o.result_count,
+            }) {
+                Ok(res) => Ok(res.node_ids.get(0).cloned().unwrap_or(0)),
+                Err(_) => Ok(0),
+            }
         })
         .and_then(|id| {
             if id == 0 {
@@ -876,6 +877,10 @@ impl Tab {
         Ok(self)
     }
 
+    /// Press a key on the keyboard, optionally with some modifier keys.
+    /// See [this file](https://github.com/puppeteer/puppeteer/blob/62da2366c65b335751896afbb0206f23c61436f1/lib/USKeyboardLayout.js)
+    /// for a full definition of which strings correspond with which
+    /// keys.
     pub fn press_key_with_modifiers(
         &self,
         key: &str,
@@ -946,6 +951,9 @@ impl Tab {
         Ok(self)
     }
 
+    /// Press a key on the keyboard. See [this file](https://github.com/puppeteer/puppeteer/blob/62da2366c65b335751896afbb0206f23c61436f1/lib/USKeyboardLayout.js)
+    /// for a full definition of which strings correspond with which
+    /// keys.
     pub fn press_key(&self, key: &str) -> Result<&Self> {
         self.press_key_with_modifiers(key, None)
     }
